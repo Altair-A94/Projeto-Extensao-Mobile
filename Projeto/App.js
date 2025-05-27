@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { getC, addC, delC } from './componentes/Lista de Carros';
 
 export default function App() {
   return (
