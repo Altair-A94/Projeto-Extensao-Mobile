@@ -5,3 +5,5 @@
 
 
 26/5-Waldir:use addC,getC e delC são as variaveis da lista.
+
+31/5-Ageu: adicionei a HomeScreen
