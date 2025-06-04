@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -12,63 +11,73 @@ import {
 } from 'react-native';
 
 export default function HomeScreen() {
-  const [tarefas, setTarefas] = useState([]);
+  const [carros, setCarros] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [titulo, setTitulo] = useState('');
-  const [data, setData] = useState('');
-  const [tarefaEditando, setTarefaEditando] = useState(null);
+  const [nome, setNome] = useState('');
+  const [ano, setAno] = useState('');
+  const [oleo, setOleo] = useState('');
+  const [carroEditando, setCarroEditando] = useState(null);
+  const [busca, setBusca] = useState('');
 
   const abrirModalCriar = () => {
-    setTitulo('');
-    setData('');
+    setNome('');
+    setAno('');
+    setOleo('');
     setModoEdicao(false);
     setModalVisible(true);
   };
 
   const abrirModalEditar = () => {
-    if (!tarefaEditando) return;
-    setTitulo(tarefaEditando.titulo);
-    setData(tarefaEditando.data);
+    if (!carroEditando) return;
+    setNome(carroEditando.nome);
+    setAno(carroEditando.ano);
+    setOleo(carroEditando.oleo || '');
     setModoEdicao(true);
     setModalVisible(true);
   };
 
-  const salvarTarefa = () => {
-    if (!titulo || !data) return;
-    if (modoEdicao && tarefaEditando) {
-      const atualizadas = tarefas.map(t =>
-        t.id === tarefaEditando.id ? { ...t, titulo, data } : t
+  const salvarCarro = () => {
+    if (!nome || !ano || !oleo) return;
+    if (modoEdicao && carroEditando) {
+      const atualizados = carros.map(c =>
+        c.id === carroEditando.id ? { ...c, nome, ano, oleo } : c
       );
-      setTarefas(atualizadas);
+      setCarros(atualizados);
     } else {
-      const nova = {
+      const novo = {
         id: Date.now().toString(),
-        titulo,
-        data,
+        nome,
+        ano,
+        oleo,
       };
-      setTarefas([...tarefas, nova]);
+      setCarros([...carros, novo]);
     }
     setModalVisible(false);
-    setTarefaEditando(null);
+    setCarroEditando(null);
   };
 
-  const excluirTarefa = (id) => {
-    setTarefas(tarefas.filter(t => t.id !== id));
+  const excluirCarro = (id) => {
+    setCarros(carros.filter(c => c.id !== id));
   };
 
-  const selecionarTarefa = (tarefa) => {
-    setTarefaEditando(tarefa);
+  const selecionarCarro = (carro) => {
+    setCarroEditando(carro);
   };
+
+  const carrosFiltrados = carros.filter(c =>
+    c.nome.toLowerCase().includes(busca.toLowerCase())
+  );
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => selecionarTarefa(item)}>
+    <TouchableOpacity onPress={() => selecionarCarro(item)}>
       <View style={styles.tarefaCard}>
         <View style={styles.tarefaInfo}>
-          <Text style={styles.tituloTarefa}>{item.titulo}</Text>
-          <Text style={styles.dataTarefa}>{item.data}</Text>
+          <Text style={styles.tituloTarefa}>{item.nome}</Text>
+          <Text style={styles.dataTarefa}>Ano: {item.ano}</Text>
+          <Text style={styles.dataTarefa}>Óleo: {item.oleo}</Text>
         </View>
-        <TouchableOpacity style={styles.btnExcluir} onPress={() => excluirTarefa(item.id)}>
+        <TouchableOpacity style={styles.btnExcluir} onPress={() => excluirCarro(item.id)}>
           <Text style={styles.txtExcluir}>Excluir</Text>
         </TouchableOpacity>
       </View>
@@ -77,10 +86,18 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>Minhas Tarefas</Text>
+      <Text style={styles.header}>Galeria de Carros</Text>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Buscar carro..."
+        value={busca}
+        onChangeText={setBusca}
+        placeholderTextColor="#888"
+      />
 
       <FlatList
-        data={tarefas}
+        data={carrosFiltrados}
         keyExtractor={item => item.id}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
@@ -98,22 +115,29 @@ export default function HomeScreen() {
 
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>{modoEdicao ? 'Editar Tarefa' : 'Nova Tarefa'}</Text>
+          <Text style={styles.modalTitle}>{modoEdicao ? 'Editar Carro' : 'Novo Carro'}</Text>
           <TextInput
-            placeholder="Título da tarefa"
-            value={titulo}
-            onChangeText={setTitulo}
+            placeholder="Nome do carro"
+            value={nome}
+            onChangeText={setNome}
             style={styles.input}
             placeholderTextColor="#888"
           />
           <TextInput
-            placeholder="Data da tarefa"
-            value={data}
-            onChangeText={setData}
+            placeholder="Ano do carro"
+            value={ano}
+            onChangeText={setAno}
             style={styles.input}
             placeholderTextColor="#888"
           />
-          <TouchableOpacity style={styles.btnAmarelo} onPress={salvarTarefa}>
+          <TextInput
+            placeholder="Tipo de óleo"
+            value={oleo}
+            onChangeText={setOleo}
+            style={styles.input}
+            placeholderTextColor="#888"
+          />
+          <TouchableOpacity style={styles.btnAmarelo} onPress={salvarCarro}>
             <Text style={styles.txtBtn}>Salvar</Text>
           </TouchableOpacity>
         </View>
