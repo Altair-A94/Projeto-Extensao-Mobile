@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import {View,Text,TextInput,TouchableOpacity, Modal, StyleSheet,KeyboardAvoidingView,Platform,TouchableWithoutFeedback,Keyboard, ScrollView, } from 'react-native';
-import { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, Platform,TouchableWithoutFeedback, Keyboard,ScrollView,} from 'react-native';
 import { TarefasContext } from '../App';
 import { TextInputMask } from 'react-native-masked-text';
 
@@ -8,8 +7,9 @@ const options = ['Motor', 'Óleo', 'Revisão', 'Pneus', 'Bateria', 'Elétrica'];
 const marcas = ['Fiat', 'Chevrolet', 'Hyundai', 'Jeep', 'Ford', 'Volkswagen', 'Nissan'];
 
 export default function FormScreen({ route, navigation }) {
-  const { modoEdicao, tarefaEditando, callback } = route.params || {};
+  const { modoEdicao, tarefaEditando } = route.params || {};
   const { salvarTarefa } = useContext(TarefasContext);
+
   const [data, setData] = useState('');
   const [descricao, setDescricao] = useState('');
   const [marcaVeiculo, setMarcaVeiculo] = useState('');
@@ -26,8 +26,15 @@ export default function FormScreen({ route, navigation }) {
       setDonoVeiculo(tarefaEditando.dono);
       setTelefoneDono(tarefaEditando.tel);
       setSelectedOptions(tarefaEditando.titulo.split(', '));
+    } else {
+      setData('');
+      setDescricao('');
+      setMarcaVeiculo('');
+      setDonoVeiculo('');
+      setTelefoneDono('');
+      setSelectedOptions([]);
     }
-  }, []);
+  }, [modoEdicao, tarefaEditando]);
 
   const toggleSelection = (option) => {
     if (selectedOptions.includes(option)) {
@@ -37,28 +44,43 @@ export default function FormScreen({ route, navigation }) {
     }
   };
 
-const salvar = () => {
-  const tarefa = {
-    id: modoEdicao && tarefaEditando ? tarefaEditando.id : Date.now().toString(),
-    titulo: selectedOptions.join(', '), descricao, data, marca: marcaVeiculo, dono, tel,
+  const salvar = () => {
+    const tarefa = {
+      id: modoEdicao && tarefaEditando ? tarefaEditando.id : Date.now().toString(),
+      titulo: selectedOptions.join(', '),
+      descricao,
+      data,
+      marca: marcaVeiculo,
+      dono,
+      tel,
+    };
+
+    salvarTarefa(tarefa);
+
+    navigation.navigate('Minhas Tarefas');
   };
 
-  salvarTarefa(tarefa); 
-navigation.navigate('Tabs', { screen: 'Minhas Tarefas' });
+  const fecharFormulario = () => {
+    navigation.navigate('Minhas Tarefas');
   };
 
- return (
-   <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <KeyboardAvoidingView
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined} >
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
         <View style={styles.formContainer}>
-          <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={fecharFormulario}
+          >
             <Text style={styles.closeButtonText}>×</Text>
           </TouchableOpacity>
-    <Text style={styles.modalTitle}>{modoEdicao ? 'Editar Tarefa' : 'Adicionar Serviço'}</Text>
 
-    <TextInputMask
+          <Text style={styles.modalTitle}>{modoEdicao ? 'Editar Tarefa' : 'Adicionar Serviço'}</Text>
+
+          <TextInputMask
             type={'datetime'}
             options={{ format: 'DD/MM/YYYY' }}
             placeholder="Data"
@@ -66,17 +88,17 @@ navigation.navigate('Tabs', { screen: 'Minhas Tarefas' });
             onChangeText={setData}
             style={styles.input}
             placeholderTextColor="#888"
-    />
+          />
 
-        <TextInput
+          <TextInput
             placeholder="Proprietário do Veículo"
             value={dono}
             onChangeText={setDonoVeiculo}
             style={styles.input}
             placeholderTextColor="#888"
-        />
+          />
 
-        <TextInputMask
+          <TextInputMask
             type={'cel-phone'}
             options={{ maskType: 'BRL', withDDD: true, dddMask: '(99)' }}
             placeholder="(xx) xxxxx-xxxx"
@@ -84,32 +106,42 @@ navigation.navigate('Tabs', { screen: 'Minhas Tarefas' });
             onChangeText={setTelefoneDono}
             style={styles.input}
             placeholderTextColor="#888"
-        />
+          />
 
-    <Text style={styles.label}>Marca do veículo</Text>
-        <TouchableOpacity style={styles.input} onPress={() => setModalMarcaVisible(true)}>
+          <Text style={styles.label}>Marca do veículo</Text>
+          <TouchableOpacity style={styles.input} onPress={() => setModalMarcaVisible(true)}>
             <Text style={{ color: marcaVeiculo ? '#000' : '#888' }}>
               {marcaVeiculo || 'Selecione a marca'}
             </Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
 
-    <Text style={styles.label}>Serviços</Text>
-        <View style={styles.optionsContainer}>
+          <Text style={styles.label}>Serviços</Text>
+          <View style={styles.optionsContainer}>
             {options.map(option => (
-            <TouchableOpacity
+              <TouchableOpacity
                 key={option}
                 style={styles.optionButton}
                 onPress={() => toggleSelection(option)}
               >
-        <View style={[ styles.optionCircle, selectedOptions.includes(option) && styles.optionCircleSelected, ]} />
-        <Text style={[ styles.optionText, selectedOptions.includes(option) && styles.optionTextSelected, ]} >
+                <View
+                  style={[
+                    styles.optionCircle,
+                    selectedOptions.includes(option) && styles.optionCircleSelected,
+                  ]}
+                />
+                <Text
+                  style={[
+                    styles.optionText,
+                    selectedOptions.includes(option) && styles.optionTextSelected,
+                  ]}
+                >
                   {option}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
-    <TextInput
+          <TextInput
             placeholder="Descrição do(s) serviço(s)"
             value={descricao}
             onChangeText={setDescricao}
@@ -118,9 +150,9 @@ navigation.navigate('Tabs', { screen: 'Minhas Tarefas' });
             multiline
           />
 
-        <TouchableOpacity style={styles.btnAmarelo} onPress={salvar}>
+          <TouchableOpacity style={styles.btnAmarelo} onPress={salvar}>
             <Text style={styles.txtBtn}>Salvar</Text>
-        </TouchableOpacity>
+          </TouchableOpacity>
         </View>
 
         <Modal

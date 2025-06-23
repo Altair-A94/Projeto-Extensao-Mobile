@@ -1,50 +1,44 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { Button } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import HomeScreen from './Screens/HomeScreen';
-import FormScreen from './Screens/FormScreen';
-import TarefasScreen from './Screens/TarefasScreen';
-import { getTarefas } from './componentes/Armazenamento';  
+import HomeScreen from './Screens/HomeScreen';       
+import InicioScreen from './Screens/InicioScreen';   
+import TarefasScreen from './Screens/TarefasScreen'; 
+import FormScreen from './Screens/FormScreen';       
+import { getTarefas } from './componentes/Armazenamento';
 
 export const TarefasContext = createContext();
 
-const Tab = createMaterialTopTabNavigator();
 const Stack = createNativeStackNavigator();
+const Tab = createMaterialTopTabNavigator();
 
-function Tabs({ navigation }) {
+function HomeTabs() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarStyle: { backgroundColor: '#1c1c1e' },
-        tabBarLabelStyle: { fontWeight: '600', fontSize: 14 },
         tabBarActiveTintColor: '#ffd60a',
         tabBarInactiveTintColor: '#fff',
-        tabBarIndicatorStyle: {
-          backgroundColor: '#ffd60a',
-          height: 3,
-          borderRadius: 2,
-        },
-        tabBarShowIcon: true,
-        tabBarIcon: ({ color }) => {
+        tabBarIndicatorStyle: { backgroundColor: '#ffd60a', height: 3, borderRadius: 2 },
+        tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === 'Início') iconName = 'home';
+          else if (route.name === 'Formulário') iconName = 'file-document-edit';
           else if (route.name === 'Minhas Tarefas') iconName = 'clipboard-list';
-          return <Icon name={iconName} size={20} color={color} />;
+
+          return <Icon name={iconName} size={size || 20} color={color} />;
         },
-        headerRight: () =>
-          route.name === 'Início' ? (
-            <Button onPress={() => navigation.navigate('Form', { modoEdicao: false })}
-              title="Criar"
-              color="#ffd60a"
-            />
-          ) : null
+        tabBarLabelStyle: {
+          fontWeight: '600',
+          fontSize: 14,
+        },
       })}
     >
-      <Tab.Screen name="Início" component={HomeScreen} />
+      <Tab.Screen name="Início" component={InicioScreen} />
+      <Tab.Screen name="Formulário" component={FormScreen} />
       <Tab.Screen name="Minhas Tarefas" component={TarefasScreen} />
     </Tab.Navigator>
   );
@@ -52,17 +46,15 @@ function Tabs({ navigation }) {
 
 export default function App() {
   const [tarefas, setTarefas] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  
   useEffect(() => {
-    const carregarTarefas = async () => {
+    (async () => {
       const armazenadas = await getTarefas();
       setTarefas(armazenadas);
-    };
-    carregarTarefas();
+    })();
   }, []);
 
-  
   const salvarTarefa = async (tarefa) => {
     let novas;
     if (tarefa.deletar) {
@@ -73,8 +65,6 @@ export default function App() {
         : [...tarefas, tarefa];
     }
     setTarefas(novas);
-    
-    
     const { default: AsyncStorage } = await import('@react-native-async-storage/async-storage');
     await AsyncStorage.setItem('@ListaTarefas', JSON.stringify(novas));
   };
@@ -82,9 +72,19 @@ export default function App() {
   return (
     <TarefasContext.Provider value={{ tarefas, salvarTarefa }}>
       <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen name="Tabs" component={Tabs} options={{ headerShown: false }} />
-          <Stack.Screen name="Form" component={FormScreen} options={{ title: 'Formulário' }} />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {!isLoggedIn ? (
+            <Stack.Screen name="Login">
+              {(props) => (
+                <HomeScreen
+                  {...props}
+                  onLoginSuccess={() => setIsLoggedIn(true)}
+                />
+              )}
+            </Stack.Screen>
+          ) : (
+            <Stack.Screen name="HomeTabs" component={HomeTabs} />
+          )}
         </Stack.Navigator>
       </NavigationContainer>
     </TarefasContext.Provider>

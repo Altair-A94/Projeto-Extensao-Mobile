@@ -1,72 +1,136 @@
-import React from 'react';
-import { View, Text, TouchableOpacity,StyleSheet,SafeAreaView, ImageBackground,} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View,Text,TextInput,TouchableOpacity,StyleSheet,SafeAreaView,Image,Dimensions, } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-export default function HomeScreen() {
-  const navigation = useNavigation();
+const windowWidth = Dimensions.get('window').width;
 
-  const abrirFormularioCriar = () => {
-    navigation.navigate('Form', {
-      modoEdicao: false,
-      tarefaEditando: null,
-    });
+export default function HomeScreen({ onLoginSuccess }) {
+  const [login, setLogin] = useState('');
+  const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [erro, setErro] = useState('');
+
+  const autenticar = () => {
+    if (login === 'admin' && senha === '123') {
+      setErro('');
+      onLoginSuccess();
+    } else {
+      setErro('Login ou senha inválidos');
+    }
   };
 
   return (
-  <SafeAreaView style={{ flex: 1 }}>
-      <ImageBackground
-        source={require('../assets/logo.png')}
-        style={styles.backgroundImage}
-        resizeMode="cover">
+    <SafeAreaView style={styles.container}>
+      <Image
+        source={require('../assets/logo2.png')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
 
-  <View style={styles.overlay}>
-    <View style={{ flex: 1, justifyContent: 'space-between' }}>
-    <Text style={styles.header}>WFJ AUTO CENTER</Text>
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.btnAmarelo} onPress={abrirFormularioCriar}>
-        <Text style={styles.txtBtn}>Criar</Text>
-              </TouchableOpacity>
+      <View style={styles.loginBox}>
+        <Text style={styles.label}>Login</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Digite seu login"
+          value={login}
+          onChangeText={setLogin}
+          autoCapitalize="none"
+          placeholderTextColor="#999"
+        />
+
+        <Text style={styles.label}>Senha</Text>
+        <View style={styles.senhaContainer}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            placeholder="Digite sua senha"
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry={!mostrarSenha}
+            placeholderTextColor="#999"
+          />
+          <TouchableOpacity
+            onPress={() => setMostrarSenha(!mostrarSenha)}
+            style={styles.iconBtn}
+          >
+            <Icon
+              name={mostrarSenha ? 'eye-off' : 'eye'}
+              size={24}
+              color="#666"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {erro ? <Text style={styles.mensagemErro}>{erro}</Text> : null}
+
+        <TouchableOpacity style={styles.botao} onPress={autenticar}>
+          <Text style={styles.textoBotao}>Entrar</Text>
+        </TouchableOpacity>
       </View>
-    </View>
-  </View>
-    </ImageBackground>
-  </SafeAreaView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  backgroundImage: {
+  container: {
     flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    padding: 16,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginTop: 20,
-  },
-  footer: {
-    flexDirection: 'row',
+    backgroundColor: '#000',
     justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  btnAmarelo: {
-    backgroundColor: '#ffd60a',
-    borderRadius: 10,
-    paddingVertical: 14,
+    alignItems: 'center',
     paddingHorizontal: 24,
-    marginTop: 6,
   },
-  txtBtn: {
-    fontWeight: '700',
-    color: '#000',
+  logo: {
+    width: windowWidth * 0.7,
+    aspectRatio: 1.5,
+    marginBottom: 8,
+  },
+  loginBox: {
+    width: windowWidth * 0.85,
+    maxWidth: 400,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 12,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 10,
+  },
+  label: {
+    color: '#333',
+    fontWeight: '600',
+    marginBottom: 6,
+    marginTop: 12,
+  },
+  input: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
     fontSize: 16,
+    color: '#000',
+  },
+  senhaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBtn: {
+    paddingHorizontal: 8,
+  },
+  botao: {
+    backgroundColor: '#ffd60a',
+    padding: 14,
+    borderRadius: 8,
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  textoBotao: {
+    color: '#000',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  mensagemErro: {
+    color: 'red',
+    marginTop: 12,
+    fontWeight: '600',
     textAlign: 'center',
   },
 });
