@@ -11,7 +11,7 @@ export default function TarefasScreen() {
   const abrirFormularioEditar = () => {
     if (!tarefaEditando) return;
 
-    navigation.navigate('Form', {
+    navigation.navigate('Formulário', {
       modoEdicao: true,
       tarefaEditando,
     });
@@ -49,6 +49,21 @@ export default function TarefasScreen() {
           <Text style={styles.dataTarefa}>Proprietário: {item.dono}</Text>
           <Text style={styles.dataTarefa}>Marca: {item.marca}</Text>
           <Text style={styles.dataTarefa}>Telefone: {item.tel}</Text>
+          <Text style={styles.statusTarefa}>Status: {item.status || 'Pendente'}</Text>
+          {item.status === 'Pendente' && (
+            <TouchableOpacity
+              style={styles.btnStatus}
+              onPress={() => {
+                const tarefaAtualizada = { ...item, status: 'Pronta' };
+                salvarTarefa(tarefaAtualizada);
+                if (tarefaEditando && tarefaEditando.id === item.id) {
+                  setTarefaEditando(tarefaAtualizada);
+                }
+              }}
+            >
+              <Text style={styles.txtStatus}>Marcar como Pronta</Text>
+            </TouchableOpacity>
+          )}
         </View>
         <TouchableOpacity
           style={styles.btnExcluir}
@@ -102,6 +117,24 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   dataTarefa: { fontSize: 14, color: '#555' },
+  statusTarefa: {
+    fontSize: 14,
+    color: '#007700',
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  btnStatus: {
+    marginTop: 8,
+    backgroundColor: '#4CAF50',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  txtStatus: {
+    color: '#fff',
+    fontWeight: '600',
+  },
   btnExcluir: {
     backgroundColor: '#ff3b30',
     borderRadius: 8,

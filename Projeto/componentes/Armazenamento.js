@@ -32,3 +32,34 @@ export async function delTarefa(id) {
   tarefas = tarefas.filter(v => v.id !== id);
   await salvarTarefas(tarefas);
 }
+
+// New functions for login data storage
+
+const Login_chave = '@LoginUsuario';
+
+export async function salvarLoginUsuario(usuario) {
+  try {
+    const jsonValue = JSON.stringify(usuario);
+    await AsyncStorage.setItem(Login_chave, jsonValue);
+  } catch (e) {
+    console.error('Falha ao salvar login do usuário', e);
+  }
+}
+
+export async function getLoginUsuario() {
+  try {
+    const jsonValue = await AsyncStorage.getItem(Login_chave);
+    return jsonValue != null ? JSON.parse(jsonValue) : null;
+  } catch (e) {
+    console.error('Falha ao obter login do usuário', e);
+    return null;
+  }
+}
+
+export async function delLoginUsuario() {
+  try {
+    await AsyncStorage.removeItem(Login_chave);
+  } catch (e) {
+    console.error('Falha ao limpar login do usuário', e);
+  }
+}

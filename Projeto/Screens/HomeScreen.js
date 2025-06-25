@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View,Text,TextInput,TouchableOpacity,StyleSheet,SafeAreaView,Image,Dimensions, } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { salvarLoginUsuario } from '../componentes/Armazenamento';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -10,10 +11,15 @@ export default function HomeScreen({ onLoginSuccess }) {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erro, setErro] = useState('');
 
-  const autenticar = () => {
+  const autenticar = async () => {
     if (login === 'admin' && senha === '123') {
       setErro('');
-      onLoginSuccess();
+      await salvarLoginUsuario({ username: login, tipo: 'admin' });    
+      onLoginSuccess('gerentes');
+    } else if (login && senha) {
+      setErro('');
+      await salvarLoginUsuario({ username: login, tipo: 'cliente' });
+      onLoginSuccess('cliente');
     } else {
       setErro('Login ou senha inválidos');
     }

@@ -44,6 +44,28 @@ export default function FormScreen({ route, navigation }) {
     }
   };
 
+  const [status, setStatus] = useState('Pendente');
+
+  useEffect(() => {
+    if (modoEdicao && tarefaEditando) {
+      setData(tarefaEditando.data);
+      setDescricao(tarefaEditando.descricao);
+      setMarcaVeiculo(tarefaEditando.marca);
+      setDonoVeiculo(tarefaEditando.dono);
+      setTelefoneDono(tarefaEditando.tel);
+      setSelectedOptions(tarefaEditando.titulo.split(', '));
+      setStatus(tarefaEditando.status || 'Pendente');
+    } else {
+      setData('');
+      setDescricao('');
+      setMarcaVeiculo('');
+      setDonoVeiculo('');
+      setTelefoneDono('');
+      setSelectedOptions([]);
+      setStatus('Pendente');
+    }
+  }, [modoEdicao, tarefaEditando]);
+
   const salvar = () => {
     const tarefa = {
       id: modoEdicao && tarefaEditando ? tarefaEditando.id : Date.now().toString(),
@@ -53,6 +75,7 @@ export default function FormScreen({ route, navigation }) {
       marca: marcaVeiculo,
       dono,
       tel,
+      status,
     };
 
     salvarTarefa(tarefa);
@@ -149,6 +172,22 @@ export default function FormScreen({ route, navigation }) {
             placeholderTextColor="#888"
             multiline
           />
+
+          <Text style={styles.label}>Status</Text>
+          <View style={styles.statusContainer}>
+            <TouchableOpacity
+              style={[styles.statusButton, status === 'Pendente' && styles.statusButtonSelected]}
+              onPress={() => setStatus('Pendente')}
+            >
+              <Text style={[styles.statusText, status === 'Pendente' && styles.statusTextSelected]}>Pendente</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.statusButton, status === 'Pronta' && styles.statusButtonSelected]}
+              onPress={() => setStatus('Pronta')}
+            >
+              <Text style={[styles.statusText, status === 'Pronta' && styles.statusTextSelected]}>Pronta</Text>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity style={styles.btnAmarelo} onPress={salvar}>
             <Text style={styles.txtBtn}>Salvar</Text>
@@ -248,6 +287,28 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     fontWeight: 'bold',
     color: '#4CAF50',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  statusButton: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 8,
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  statusButtonSelected: {
+    backgroundColor: '#4CAF50',
+  },
+  statusText: {
+    color: '#000',
+    fontWeight: '600',
+  },
+  statusTextSelected: {
+    color: '#fff',
   },
   closeButton: {
     position: 'absolute',
