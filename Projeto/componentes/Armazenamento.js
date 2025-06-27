@@ -39,6 +39,11 @@ const Login_chave = '@LoginUsuario';
 
 export async function salvarLoginUsuario(usuario) {
   try {
+    // Ensure the user object uses "role" property instead of "tipo"
+    if (usuario.tipo) {
+      usuario.role = usuario.tipo;
+      delete usuario.tipo;
+    }
     const jsonValue = JSON.stringify(usuario);
     await AsyncStorage.setItem(Login_chave, jsonValue);
   } catch (e) {
@@ -49,7 +54,12 @@ export async function salvarLoginUsuario(usuario) {
 export async function getLoginUsuario() {
   try {
     const jsonValue = await AsyncStorage.getItem(Login_chave);
-    return jsonValue != null ? JSON.parse(jsonValue) : null;
+    const usuario = jsonValue != null ? JSON.parse(jsonValue) : null;
+    if (usuario && usuario.tipo) {
+      usuario.role = usuario.tipo;
+      delete usuario.tipo;
+    }
+    return usuario;
   } catch (e) {
     console.error('Falha ao obter login do usuário', e);
     return null;
@@ -62,4 +72,39 @@ export async function delLoginUsuario() {
   } catch (e) {
     console.error('Falha ao limpar login do usuário', e);
   }
+}
+
+// New functions for users list storage
+
+const Usuarios_chave = '@ListaUsuarios';
+
+export async function getUsuarios() {
+  try {
+    const jsonValue = await AsyncStorage.getItem(Usuarios_chave);
+    return jsonValue != null ? JSON.parse(jsonValue) : [];
+  } catch (e) {
+    console.error('Falha ao obter usuários', e);
+    return [];
+  }
+}
+
+export async function salvarUsuarios(usuarios) {
+  try {
+    const jsonValue = JSON.stringify(usuarios);
+    await AsyncStorage.setItem(Usuarios_chave, jsonValue);
+  } catch (e) {
+    console.error('Falha ao salvar usuários', e);
+  }
+}
+
+export async function addUsuario(usuario) {
+  const usuarios = await getUsuarios();
+  usuarios.push(usuario);
+  await salvarUsuarios(usuarios);
+}
+
+export async function delUsuario(id) {
+  let usuarios = await getUsuarios();
+  usuarios = usuarios.filter(u => u.id !== id);
+  await salvarUsuarios(usuarios);
 }

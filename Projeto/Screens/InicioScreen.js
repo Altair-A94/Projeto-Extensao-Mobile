@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ImageBackground } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-export default function InicioScreen() {
+export default function InicioScreen({ onLogout, userRole }) {
   const navigation = useNavigation();
 
   const abrirFormularioCriar = () => {
@@ -20,8 +20,13 @@ export default function InicioScreen() {
           <View style={{ flex: 1, justifyContent: 'space-between' }}>
             <Text style={styles.header}>WFJ AUTO CENTER</Text>
             <View style={styles.footer}>
-              <TouchableOpacity style={styles.btnAmarelo} onPress={abrirFormularioCriar}>
-                <Text style={styles.txtBtn}>Criar</Text>
+              {userRole !== 'cliente' && (
+                <TouchableOpacity style={styles.btnAmarelo} onPress={abrirFormularioCriar}>
+                  <Text style={styles.txtBtn}>Criar</Text>
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={[styles.btnAmarelo, { marginLeft: 10 }]} onPress={onLogout}>
+                <Text style={styles.txtBtn}>Logout</Text>
               </TouchableOpacity>
             </View>
           </View>

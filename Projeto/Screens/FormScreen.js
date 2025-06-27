@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, Platform,TouchableWithoutFeedback, Keyboard,ScrollView,} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, KeyboardAvoidingView, Platform,TouchableWithoutFeedback, Keyboard,ScrollView,FlatList, Alert } from 'react-native';
 import { TarefasContext } from '../App';
 import { TextInputMask } from 'react-native-masked-text';
-
+import { getUsuarios } from '../componentes/Armazenamento';
 const options = ['Motor', 'Óleo', 'Revisão', 'Pneus', 'Bateria', 'Elétrica'];
 const marcas = ['Fiat', 'Chevrolet', 'Hyundai', 'Jeep', 'Ford', 'Volkswagen', 'Nissan'];
 
@@ -18,31 +18,8 @@ export default function FormScreen({ route, navigation }) {
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [modalMarcaVisible, setModalMarcaVisible] = useState(false);
 
-  useEffect(() => {
-    if (modoEdicao && tarefaEditando) {
-      setData(tarefaEditando.data);
-      setDescricao(tarefaEditando.descricao);
-      setMarcaVeiculo(tarefaEditando.marca);
-      setDonoVeiculo(tarefaEditando.dono);
-      setTelefoneDono(tarefaEditando.tel);
-      setSelectedOptions(tarefaEditando.titulo.split(', '));
-    } else {
-      setData('');
-      setDescricao('');
-      setMarcaVeiculo('');
-      setDonoVeiculo('');
-      setTelefoneDono('');
-      setSelectedOptions([]);
-    }
-  }, [modoEdicao, tarefaEditando]);
-
-  const toggleSelection = (option) => {
-    if (selectedOptions.includes(option)) {
-      setSelectedOptions(selectedOptions.filter(item => item !== option));
-    } else {
-      setSelectedOptions([...selectedOptions, option]);
-    }
-  };
+  const [users, setUsers] = useState([]);
+  const [modalUserVisible, setModalUserVisible] = useState(false);
 
   const [status, setStatus] = useState('Pendente');
 
@@ -62,11 +39,19 @@ export default function FormScreen({ route, navigation }) {
       setDonoVeiculo('');
       setTelefoneDono('');
       setSelectedOptions([]);
-      setStatus('Pendente');
     }
   }, [modoEdicao, tarefaEditando]);
 
-  const salvar = () => {
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const allUsers = await getUsuarios();
+      const clientes = allUsers.filter(user => user.role && user.role.toLowerCase().includes('cliente'));
+      setUsers(clientes);
+    };
+    fetchUsers();
+  }, []);
+
+  const salvar = async () => {
     const tarefa = {
       id: modoEdicao && tarefaEditando ? tarefaEditando.id : Date.now().toString(),
       titulo: selectedOptions.join(', '),
@@ -78,7 +63,14 @@ export default function FormScreen({ route, navigation }) {
       status,
     };
 
-    salvarTarefa(tarefa);
+    // Check if status changed from Pendente to Pronta
+    const statusChangedToPronta = modoEdicao && tarefaEditando && tarefaEditando.status === 'Pendente' && status === 'Pronta';
+
+    await salvarTarefa(tarefa);
+
+    if (statusChangedToPronta) {
+      Alert.alert('Notificação', 'Seu carro está pronto.');
+    }
 
     navigation.navigate('Minhas Tarefas');
   };
@@ -113,13 +105,14 @@ export default function FormScreen({ route, navigation }) {
             placeholderTextColor="#888"
           />
 
-          <TextInput
-            placeholder="Proprietário do Veículo"
-            value={dono}
-            onChangeText={setDonoVeiculo}
+          <TouchableOpacity
             style={styles.input}
-            placeholderTextColor="#888"
-          />
+            onPress={() => setModalUserVisible(true)}
+          >
+            <Text style={{ color: dono ? '#000' : '#888' }}>
+              {dono || 'Selecione o Proprietário do Veículo'}
+            </Text>
+          </TouchableOpacity>
 
           <TextInputMask
             type={'cel-phone'}
@@ -218,6 +211,37 @@ export default function FormScreen({ route, navigation }) {
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
+
+        <Modal
+          visible={modalUserVisible}
+          animationType="fade"
+          transparent
+          onRequestClose={() => setModalUserVisible(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setModalUserVisible(false)}>
+            <View style={styles.modalMarcaBackdrop}>
+              <View style={styles.modalMarcaContainer}>
+                <Text style={styles.modalTitle}>Selecione o Proprietário</Text>
+                <FlatList
+                  data={users}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.marcaOption}
+                      onPress={() => {
+                        setDonoVeiculo(item.username);
+                        setModalUserVisible(false);
+                      }}
+                    >
+                      <Text style={styles.marcaOptionText}>{item.username}</Text>
+                    </TouchableOpacity>
+                  )}
+                  ListEmptyComponent={<Text style={styles.emptyText}>Nenhum cliente registrado.</Text>}
+                />
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -356,5 +380,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     textAlign: 'center',
+  },
+  emptyText: {
+    color: '#fff',
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

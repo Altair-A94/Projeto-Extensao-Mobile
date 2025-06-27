@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View,Text,TextInput,TouchableOpacity,StyleSheet,SafeAreaView,Image,Dimensions, } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { salvarLoginUsuario } from '../componentes/Armazenamento';
+import { salvarLoginUsuario, getUsuarios } from '../componentes/Armazenamento';
 
 const windowWidth = Dimensions.get('window').width;
 
@@ -12,17 +12,28 @@ export default function HomeScreen({ onLoginSuccess }) {
   const [erro, setErro] = useState('');
 
   const autenticar = async () => {
-    if (login === 'admin' && senha === '123') {
-      setErro('');
-      await salvarLoginUsuario({ username: login, tipo: 'admin' });    
-      onLoginSuccess('gerentes');
-    } else if (login && senha) {
-      setErro('');
-      await salvarLoginUsuario({ username: login, tipo: 'cliente' });
-      onLoginSuccess('cliente');
-    } else {
-      setErro('Login ou senha inválidos');
-    }
+      if (login === 'admin' && senha === '123') {
+        setErro('');
+        await salvarLoginUsuario({ username: login, role: 'gerente' });    
+        onLoginSuccess('gerente', login);
+      } else if (login && senha) {
+        try {
+          const usuarios = await getUsuarios();
+          const usuarioEncontrado = usuarios.find(u => u.username === login && u.password === senha);
+          if (!usuarioEncontrado) {
+            setErro('Usuário não registrado.');
+            return;
+          }
+          setErro('');
+          await salvarLoginUsuario({ username: login, role: usuarioEncontrado.role || 'cliente' });
+          onLoginSuccess(usuarioEncontrado.role || 'cliente', login);
+        } catch (e) {
+          setErro('Erro ao verificar usuário.');
+          console.error('Erro ao verificar usuário', e);
+        }
+      } else {
+        setErro('Login ou senha inválidos');
+      }
   };
 
   return (
